@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Remover Limite — Inventário DC{% endblock %}
+{% block content %}
+<div class="card" style="max-width:440px;">
+  <div class="card-body">
+    <h5>Remover limite</h5>
+    <p>Remover o limite de estoque para <strong>{{ object }}</strong>?</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Remover</button>
+        <a href="{% url 'limite_lista' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

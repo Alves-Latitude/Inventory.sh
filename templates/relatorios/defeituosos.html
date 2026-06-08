@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Defeituosos e Descartados — Inventário DC{% endblock %}
+{% block content %}
+<h4 class="mb-3">Itens Defeituosos e Descartados</h4>
+{% include 'relatorios/_filtros.html' %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Tipo</th><th>Fabricante / Modelo</th><th>Status</th><th>Data Center</th><th>Entrada</th></tr>
+      </thead>
+      <tbody>
+        {% for c in componentes %}
+        <tr>
+          <td>{{ c.tipo }}</td>
+          <td><a href="{% url 'componente_detalhe' c.pk %}">{{ c.fabricante_modelo }}</a></td>
+          <td>
+            {% if c.status == 'defeituoso' %}<span class="badge text-bg-warning">{{ c.get_status_display }}</span>
+            {% else %}<span class="badge text-bg-secondary">{{ c.get_status_display }}</span>{% endif %}
+          </td>
+          <td>{{ c.data_center }}</td>
+          <td>{{ c.data_entrada|date:"d/m/Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">Nenhum item encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

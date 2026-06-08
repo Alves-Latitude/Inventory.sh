@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Limites de Estoque — Inventário DC{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Limites de Estoque Mínimo</h4>
+  <a href="{% url 'limite_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Novo</a>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Tipo</th><th>Data Center</th><th>Mínimo</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for l in limites %}
+        <tr>
+          <td>{{ l.tipo }}</td>
+          <td>{{ l.data_center }}</td>
+          <td>{{ l.minimo }}</td>
+          <td class="text-end">
+            <a href="{% url 'limite_editar' l.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'limite_remover' l.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-4">Nenhum limite configurado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Login — Latitude.sh Inventory{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h5 class="mb-1 text-center fw-bold"><span style="color:#6c8ebf;">Latitude.sh</span> Inventory</h5>
+        <p class="text-center text-muted mb-4" style="font-size:.85rem;">Controle de inventário de servidores</p>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            <input type="{{ field.field.widget.input_type }}"
+                   name="{{ field.html_name }}"
+                   class="form-control {% if field.errors %}is-invalid{% endif %}"
+                   {% if field.value %}value="{{ field.value }}"{% endif %}>
+            {% for error in field.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <button type="submit" class="btn btn-primary w-100">Entrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

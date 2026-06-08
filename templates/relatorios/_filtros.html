@@ -1,0 +1,20 @@
+{% comment %}Bloco de filtros reutilizável nos relatórios{% endcomment %}
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      {% for field in form %}
+      <div class="col-auto">
+        <label class="form-label form-label-sm mb-1">{{ field.label }}</label>
+        {{ field }}
+      </div>
+      {% endfor %}
+      <div class="col-auto">
+        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+        <a href="{{ request.path }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        <button type="submit" name="exportar" value="1" class="btn btn-outline-success btn-sm">
+          <i class="bi bi-download me-1"></i>CSV
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
