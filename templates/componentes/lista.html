@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Inventário — Latitude.sh Inventory{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Inventário</h4>
+  <div class="d-flex gap-2">
+    <a href="{% url 'componente_adicionar' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Adicionar
+    </a>
+    <a href="{% url 'componente_remover' %}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-dash-circle me-1"></i>Remover
+    </a>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-auto">
+        <input type="text" name="busca" class="form-control form-control-sm"
+               placeholder="Fabricante ou modelo" value="{{ filtros.busca|default:'' }}">
+      </div>
+      <div class="col-auto">
+        <select name="tipo" class="form-select form-select-sm">
+          <option value="">Todos os tipos</option>
+          {% for t in tipos %}
+          <option value="{{ t.pk }}" {% if filtros.tipo == t.pk|stringformat:'s' %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select name="data_center" class="form-select form-select-sm">
+          <option value="">Todos os DCs</option>
+          {% for dc in datacenters %}
+          <option value="{{ dc.pk }}" {% if filtros.data_center == dc.pk|stringformat:'s' %}selected{% endif %}>{{ dc }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">Todos os status</option>
+          {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if filtros.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+        <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Fabricante</th>
+          <th>Modelo</th>
+          <th>Tipo</th>
+          <th>Capacidade</th>
+          <th>Interface</th>
+          <th>Status</th>
+          <th>Data Center</th>
+          <th>Entrada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in componentes %}
+        <tr>
+          <td>{{ c.fabricante }}</td>
+          <td>{{ c.modelo }}</td>
+          <td>{{ c.tipo }}</td>
+          <td>{{ c.disco_capacidade|default:"—" }}</td>
+          <td>{{ c.disco_interface|default:"—" }}</td>
+          <td>
+            {% if c.status == 'em_estoque' %}
+            <span class="badge text-bg-success">Em estoque</span>
+            {% else %}
+            <span class="badge text-bg-secondary">Removido</span>
+            {% endif %}
+          </td>
+          <td>{{ c.data_center }}</td>
+          <td>{{ c.data_entrada|date:"d/m/Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted py-4">Nenhum componente encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if is_paginated %}
+  <div class="card-footer">
+    <nav><ul class="pagination pagination-sm mb-0">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>{% endif %}
+    </ul></nav>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

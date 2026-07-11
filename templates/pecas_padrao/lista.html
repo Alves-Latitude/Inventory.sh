@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Peças Padrão — Inventário DC{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Peças Padrão de Troca/Compra</h4>
+  <a href="{% url 'peca_padrao_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Nova</a>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Tipo</th><th>Fabricante</th><th>Modelo</th><th>Ativo</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in pecas %}
+        <tr>
+          <td>{{ p.tipo }}</td>
+          <td>{{ p.fabricante }}</td>
+          <td>{{ p.modelo }}</td>
+          <td>
+            {% if p.ativo %}<span class="badge bg-success">Sim</span>{% else %}<span class="badge bg-secondary">Não</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{% url 'peca_padrao_editar' p.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">Nenhuma peça padrão cadastrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Fabricantes — Latitude.sh Inventory{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Fabricantes</h4>
+  <a href="{% url 'fabricante_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Novo</a>
+</div>
+<div class="card" style="max-width:480px;">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Nome</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for f in fabricantes %}
+        <tr>
+          <td>{{ f.nome }}</td>
+          <td class="text-end">
+            <a href="{% url 'fabricante_editar' f.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'fabricante_remover' f.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2" class="text-center text-muted py-4">Nenhum fabricante cadastrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Componente — Inventário DC{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">{% if object %}Editar componente{% else %}Novo componente{% endif %}</h4>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" id="componente-form">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="text-muted mb-3">Campos gerais</h6>
+          {% for field in form %}
+            {% if field.name in 'tipo,fabricante_modelo,status,data_center,observacoes,servidor_instalado' %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+              {{ field }}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          <div id="campos-disco" class="campos-especificos" style="display:none;">
+            <h6 class="text-muted mb-3">Campos específicos — Disco</h6>
+            {% for field in form %}
+              {% if field.name in 'disco_capacidade,disco_tipo,disco_interface' %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div id="campos-ram" class="campos-especificos" style="display:none;">
+            <h6 class="text-muted mb-3">Campos específicos — Memória RAM</h6>
+            {% for field in form %}
+              {% if field.name in 'ram_capacidade,ram_tipo,ram_velocidade' %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div id="campos-custom" class="campos-especificos" style="display:none;">
+            <h6 class="text-muted mb-3">Informações adicionais</h6>
+            {% for field in form %}
+              {% if field.name == 'especificacoes' %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+              </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-2">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% if object %}{% url 'componente_detalhe' object.pk %}{% else %}{% url 'componente_lista' %}{% endif %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Mapa tipo_id -> categoria (injetado via Django)
+const categoriaPorTipo = {
+  {% for t in form.fields.tipo.queryset %}
+  "{{ t.pk }}": "{{ t.categoria }}",
+  {% endfor %}
+};
+
+function atualizarCampos() {
+  const tipoSelect = document.getElementById('id_tipo');
+  const cat = categoriaPorTipo[tipoSelect.value] || '';
+  document.querySelectorAll('.campos-especificos').forEach(el => el.style.display = 'none');
+  if (cat === 'disco') document.getElementById('campos-disco').style.display = '';
+  else if (cat === 'ram') document.getElementById('campos-ram').style.display = '';
+  else if (cat !== 'cpu' && cat !== 'psu' && cat !== '') document.getElementById('campos-custom').style.display = '';
+}
+
+document.getElementById('id_tipo').addEventListener('change', atualizarCampos);
+atualizarCampos();
+</script>
+{% endblock %}
