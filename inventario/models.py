@@ -5,14 +5,19 @@ from django.db import models
 class Usuario(AbstractUser):
     PERFIL_ADMIN = 'admin'
     PERFIL_USER = 'user'
+    PERFIL_LEITURA = 'leitura'
     PERFIL_CHOICES = [
         (PERFIL_ADMIN, 'Administrador'),
         (PERFIL_USER, 'Usuário'),
+        (PERFIL_LEITURA, 'Viewer'),
     ]
     perfil = models.CharField(max_length=10, choices=PERFIL_CHOICES, default=PERFIL_USER)
 
     def is_admin_inventario(self):
         return self.perfil == self.PERFIL_ADMIN or self.is_superuser
+
+    def is_somente_leitura(self):
+        return self.perfil == self.PERFIL_LEITURA and not self.is_superuser
 
     class Meta:
         verbose_name = 'Usuário'

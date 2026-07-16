@@ -29,21 +29,29 @@ class AdminMixin(UserPassesTestMixin):
         return self.request.user.is_admin_inventario()
 
 
+class BloqueiaViewerMixin(UserPassesTestMixin):
+    """Bloqueia o perfil Viewer de acessar views de criação/edição/exclusão."""
+    def test_func(self):
+        return not self.request.user.is_somente_leitura()
+
 @login_required
 def dashboard(request):
+    from django.db.models import Count, Q
+
     totais = {
         'em_estoque': Componente.objects.filter(status=Componente.EM_ESTOQUE).count(),
         'instalado': Componente.objects.filter(status=Componente.INSTALADO).count(),
         'removido': Componente.objects.filter(status=Componente.REMOVIDO).count(),
     }
-    ultimas_movimentacoes = Movimentacao.objects.select_related(
-        'componente', 'usuario', 'servidor', 'componente__data_center'
-    )[:10]
+
+    datacenters_estoque = DataCenter.objects.annotate(
+        total_estoque=Count('componente', filter=Q(componente__status=Componente.EM_ESTOQUE))
+    ).filter(total_estoque__gt=0).order_by('-total_estoque')
+
     return render(request, 'dashboard.html', {
         'totais': totais,
-        'ultimas_movimentacoes': ultimas_movimentacoes,
+        'datacenters_estoque': datacenters_estoque,
     })
-
 
 class UsuarioListView(LoginRequiredMixin, AdminMixin, ListView):
     model = Usuario
@@ -51,7 +59,7 @@ class UsuarioListView(LoginRequiredMixin, AdminMixin, ListView):
     context_object_name = 'usuarios'
 
 
-class UsuarioCreateView(LoginRequiredMixin, AdminMixin, CreateView):
+class UsuarioCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, CreateView):
     model = Usuario
     form_class = UsuarioCreateForm
     template_name = 'usuarios/form.html'
@@ -62,7 +70,7 @@ class UsuarioCreateView(LoginRequiredMixin, AdminMixin, CreateView):
         return super().form_valid(form)
 
 
-class UsuarioUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class UsuarioUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):
     model = Usuario
     form_class = UsuarioEditForm
     template_name = 'usuarios/form.html'
@@ -73,7 +81,7 @@ class UsuarioUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
         return super().form_valid(form)
 
 
-class UsuarioDeleteView(LoginRequiredMixin, AdminMixin, DeleteView):
+class UsuarioDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, DeleteView):
     model = Usuario
     template_name = 'usuarios/confirmar_exclusao.html'
     success_url = reverse_lazy('usuario_lista')
@@ -89,7 +97,7 @@ class DataCenterListView(LoginRequiredMixin, ListView):
     context_object_name = 'datacenters'
 
 
-class DataCenterCreateView(LoginRequiredMixin, AdminMixin, CreateView):
+class DataCenterCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, CreateView):
     model = DataCenter
     form_class = DataCenterForm
     template_name = 'datacenters/form.html'
@@ -100,14 +108,22 @@ class DataCenterCreateView(LoginRequiredMixin, AdminMixin, CreateView):
         return super().form_valid(form)
 
 
-class DataCenterUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class DataCenterUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):
     model = DataCenter
     form_class = DataCenterForm
     template_name = 'datacenters/form.html'
     success_url = reverse_lazy('datacenter_lista')
 
+class DataCenterDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, DeleteView):
+    model = DataCenter
+    template_name = 'datacenters/confirmar_exclusao.html'
+    success_url = reverse_lazy('datacenter_lista')
+
     def form_valid(self, form):
-        messages.success(self.request, 'Data Center atualizado com sucesso.')
+        if self.object.componente_set.exists() or self.object.servidores.exists():
+            messages.error(self.request, 'Não é possível remover um Data Center com componentes ou servidores vinculados.')
+            return redirect('datacenter_lista')
+        messages.success(self.request, 'Data Center removido.')
         return super().form_valid(form)
 
 
@@ -129,7 +145,7 @@ class ServidorListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class ServidorCreateView(LoginRequiredMixin, CreateView):
+class ServidorCreateView(LoginRequiredMixin, BloqueiaViewerMixin, CreateView):
     model = Servidor
     form_class = ServidorForm
     template_name = 'servidores/form.html'
@@ -140,7 +156,7 @@ class ServidorCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ServidorUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class ServidorUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):
     model = Servidor
     form_class = ServidorForm
     template_name = 'servidores/form.html'
@@ -158,7 +174,7 @@ class TipoListView(LoginRequiredMixin, ListView):
     queryset = TipoComponente.objects.all()
 
 
-class TipoCreateView(LoginRequiredMixin, AdminMixin, CreateView):
+class TipoCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, CreateView):    
     model = TipoComponente
     form_class = TipoComponenteForm
     template_name = 'tipos/form.html'
@@ -169,7 +185,7 @@ class TipoCreateView(LoginRequiredMixin, AdminMixin, CreateView):
         return super().form_valid(form)
 
 
-class TipoUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class TipoUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):
     model = TipoComponente
     form_class = TipoComponenteForm
     template_name = 'tipos/form.html'
@@ -182,7 +198,7 @@ class TipoUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
 
 @login_required
 def tipo_remover(request, pk):
-    if not request.user.is_admin_inventario():
+    if not request.user.is_admin_inventario() or request.user.is_somente_leitura():
         messages.error(request, 'Acesso negado.')
         return redirect('tipo_lista')
 
@@ -205,7 +221,7 @@ class FabricanteListView(LoginRequiredMixin, AdminMixin, ListView):
     context_object_name = 'fabricantes'
 
 
-class FabricanteCreateView(LoginRequiredMixin, AdminMixin, CreateView):
+class FabricanteCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, CreateView):
     model = Fabricante
     form_class = FabricanteForm
     template_name = 'fabricantes/form.html'
@@ -216,7 +232,7 @@ class FabricanteCreateView(LoginRequiredMixin, AdminMixin, CreateView):
         return super().form_valid(form)
 
 
-class FabricanteUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class FabricanteUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):
     model = Fabricante
     form_class = FabricanteForm
     template_name = 'fabricantes/form.html'
@@ -227,7 +243,7 @@ class FabricanteUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
         return super().form_valid(form)
 
 
-class FabricanteDeleteView(LoginRequiredMixin, AdminMixin, DeleteView):
+class FabricanteDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, DeleteView):
     model = Fabricante
     template_name = 'fabricantes/confirmar_exclusao.html'
     success_url = reverse_lazy('fabricante_lista')
@@ -247,7 +263,7 @@ class PecaPadraoListView(LoginRequiredMixin, AdminMixin, ListView):
     queryset = PecaPadrao.objects.select_related('tipo', 'fabricante')
 
 
-class PecaPadraoCreateView(LoginRequiredMixin, AdminMixin, CreateView):
+class PecaPadraoCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, CreateView):
     model = PecaPadrao
     form_class = PecaPadraoForm
     template_name = 'pecas_padrao/form.html'
@@ -258,7 +274,7 @@ class PecaPadraoCreateView(LoginRequiredMixin, AdminMixin, CreateView):
         return super().form_valid(form)
 
 
-class PecaPadraoUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class PecaPadraoUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):
     model = PecaPadrao
     form_class = PecaPadraoForm
     template_name = 'pecas_padrao/form.html'
@@ -269,7 +285,7 @@ class PecaPadraoUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
         return super().form_valid(form)
 
 
-class PecaPadraoDeleteView(LoginRequiredMixin, AdminMixin, DeleteView):
+class PecaPadraoDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, DeleteView):
     model = PecaPadrao
     template_name = 'pecas_padrao/confirmar_exclusao.html'
     success_url = reverse_lazy('peca_padrao_lista')
@@ -286,7 +302,7 @@ class LimiteListView(LoginRequiredMixin, AdminMixin, ListView):
     queryset = LimiteEstoque.objects.select_related('tipo', 'data_center')
 
 
-class LimiteCreateView(LoginRequiredMixin, AdminMixin, CreateView):
+class LimiteCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, CreateView):    
     model = LimiteEstoque
     form_class = LimiteEstoqueForm
     template_name = 'limites/form.html'
@@ -297,7 +313,7 @@ class LimiteCreateView(LoginRequiredMixin, AdminMixin, CreateView):
         return super().form_valid(form)
 
 
-class LimiteUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
+class LimiteUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, UpdateView):    
     model = LimiteEstoque
     form_class = LimiteEstoqueForm
     template_name = 'limites/form.html'
@@ -308,7 +324,7 @@ class LimiteUpdateView(LoginRequiredMixin, AdminMixin, UpdateView):
         return super().form_valid(form)
 
 
-class LimiteDeleteView(LoginRequiredMixin, AdminMixin, DeleteView):
+class LimiteDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, DeleteView):
     model = LimiteEstoque
     template_name = 'limites/confirmar_exclusao.html'
     success_url = reverse_lazy('limite_lista')
@@ -366,6 +382,10 @@ class ComponenteDetailView(LoginRequiredMixin, DetailView):
 
 @login_required
 def adicionar_componentes(request):
+    if request.user.is_somente_leitura():
+        messages.error(request, 'Seu perfil tem acesso somente leitura.')
+        return redirect('componente_lista')
+
     if request.method == 'POST':
         form = AdicionarComponentesForm(request.POST)
         if form.is_valid():
@@ -430,8 +450,11 @@ def adicionar_componentes(request):
 
 @login_required
 def instalar_componentes(request):
-    qs = Componente.objects.filter(status=Componente.EM_ESTOQUE).select_related('tipo', 'data_center')
+    if request.user.is_somente_leitura():
+        messages.error(request, 'Seu perfil tem acesso somente leitura.')
+        return redirect('componente_lista')
 
+    qs = Componente.objects.filter(status=Componente.EM_ESTOQUE).select_related('tipo', 'data_center')
     filtro_dc = request.GET.get('data_center') or request.POST.get('data_center_filtro')
     filtro_tipo = request.GET.get('tipo') or request.POST.get('tipo_filtro')
     if filtro_dc:
@@ -478,8 +501,11 @@ def instalar_componentes(request):
 
 @login_required
 def remover_componentes(request):
-    qs = Componente.objects.exclude(status=Componente.REMOVIDO).select_related('tipo', 'data_center')
+    if request.user.is_somente_leitura():
+        messages.error(request, 'Seu perfil tem acesso somente leitura.')
+        return redirect('componente_lista')
 
+    qs = Componente.objects.exclude(status=Componente.REMOVIDO).select_related('tipo', 'data_center')
     filtro_dc = request.GET.get('data_center') or request.POST.get('data_center_filtro')
     filtro_tipo = request.GET.get('tipo') or request.POST.get('tipo_filtro')
     if filtro_dc:

@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Por Data Center — Latitude.sh Inventory{% endblock %}
 {% block content %}
-<h4 class="mb-3">Inventário por Data Center</h4>
+
+<div class="page-header">
+  <h4><i class="bi bi-diagram-3"></i>Inventário por Data Center <span class="count-pill">{{ componentes|length }}</span></h4>
+</div>
+
 {% include 'relatorios/_filtros.html' %}
+
 <div class="card">
+  <div class="panel-header"><i class="bi bi-table"></i> Componentes</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
-      <thead class="table-light">
+      <thead>
         <tr><th>Data Center</th><th>Fabricante</th><th>Modelo</th><th>Tipo</th><th>Capacidade</th><th>Status</th><th>Entrada</th></tr>
       </thead>
       <tbody>
@@ -16,12 +22,13 @@
           <td>{{ c.fabricante }}</td>
           <td>{{ c.modelo }}</td>
           <td>{{ c.tipo }}</td>
-          <td>{{ c.disco_capacidade|default:"—" }}</td>
+          <td class="font-mono">{{ c.disco_capacidade|default:"—" }}</td>
           <td>
-            {% if c.status == 'em_estoque' %}<span class="badge text-bg-success">Em estoque</span>
-            {% else %}<span class="badge text-bg-secondary">Removido</span>{% endif %}
+            {% if c.status == 'em_estoque' %}<span class="badge-led led-ok">Em estoque</span>
+            {% elif c.status == 'instalado' %}<span class="badge-led led-info">Instalado</span>
+            {% else %}<span class="badge-led led-danger">Removido</span>{% endif %}
           </td>
-          <td>{{ c.data_entrada|date:"d/m/Y" }}</td>
+          <td class="font-mono text-muted">{{ c.data_entrada|date:"d/m/Y" }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="7" class="text-center text-muted py-4">Nenhum componente encontrado.</td></tr>

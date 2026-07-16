@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Removidos — Latitude.sh Inventory{% endblock %}
 {% block content %}
-<h4 class="mb-3">Componentes Removidos</h4>
+
+<div class="page-header">
+  <h4><i class="bi bi-x-circle"></i>Componentes Removidos <span class="count-pill">{{ componentes|length }}</span></h4>
+</div>
+
 {% include 'relatorios/_filtros.html' %}
+
 <div class="card">
+  <div class="panel-header"><i class="bi bi-table"></i> Itens removidos</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
-      <thead class="table-light">
+      <thead>
         <tr><th>Fabricante</th><th>Modelo</th><th>Tipo</th><th>Data Center</th><th>Entrada</th></tr>
       </thead>
       <tbody>
@@ -16,7 +22,7 @@
           <td>{{ c.modelo }}</td>
           <td>{{ c.tipo }}</td>
           <td>{{ c.data_center }}</td>
-          <td>{{ c.data_entrada|date:"d/m/Y" }}</td>
+          <td class="font-mono text-muted">{{ c.data_entrada|date:"d/m/Y" }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="5" class="text-center text-muted py-4">Nenhum item encontrado.</td></tr>

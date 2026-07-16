@@ -12,6 +12,7 @@ urlpatterns = [
     path('datacenters/', views.DataCenterListView.as_view(), name='datacenter_lista'),
     path('datacenters/novo/', views.DataCenterCreateView.as_view(), name='datacenter_novo'),
     path('datacenters/<int:pk>/editar/', views.DataCenterUpdateView.as_view(), name='datacenter_editar'),
+    path('datacenters/<int:pk>/remover/', views.DataCenterDeleteView.as_view(), name='datacenter_remover'),
 
     path('servidores/', views.ServidorListView.as_view(), name='servidor_lista'),
     path('servidores/novo/', views.ServidorCreateView.as_view(), name='servidor_novo'),

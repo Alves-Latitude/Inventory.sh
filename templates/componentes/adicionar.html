@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Adicionar Componentes — Latitude.sh Inventory{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h4 class="mb-0">Adicionar componentes ao estoque</h4>
+
+<div class="page-header">
+  <h4><i class="bi bi-plus-circle"></i>Adicionar componentes ao estoque</h4>
   <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">Ver inventário</a>
 </div>
 
 <div class="card" style="max-width: 680px;">
+  <div class="panel-header"><i class="bi bi-box-seam"></i> Dados do componente</div>
   <div class="card-body">
     <form method="post">
       {% csrf_token %}
@@ -41,8 +43,7 @@
         </div>
 
         <div id="disco-fields" style="display:none;" class="col-12">
-          <hr class="my-1">
-          <p class="text-muted mb-2" style="font-size:.85rem;">Especificações do disco</p>
+          <div class="form-section"><i class="bi bi-hdd"></i>Especificações do disco</div>
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label">Capacidade</label>
@@ -58,7 +59,10 @@
             </div>
           </div>
         </div>
+      </div>
 
+      <div class="form-section"><i class="bi bi-123"></i>Quantidade e observações</div>
+      <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label">Quantidade <span class="text-danger">*</span></label>
           {{ form.quantidade }}
@@ -69,11 +73,10 @@
           <label class="form-label">Observações</label>
           {{ form.observacoes }}
         </div>
+      </div>
 
-        <hr class="my-2">
-        <p class="text-muted mb-1" style="font-size:.85rem;">
-          Rastreabilidade (opcional — deixe em branco se ainda não for rastrear por unidade)
-        </p>
+      <div class="form-section"><i class="bi bi-upc-scan"></i>Rastreabilidade (opcional)</div>
+      <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">{{ form.numeros_serie.label }}</label>
           {{ form.numeros_serie }}
@@ -98,7 +101,6 @@
   </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
 const categorias = {

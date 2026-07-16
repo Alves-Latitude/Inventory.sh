@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Servidor — Inventário DC{% endblock %}
 {% block content %}
-<h4 class="mb-4">{% if object %}Editar servidor{% else %}Novo servidor{% endif %}</h4>
+
+<div class="page-header">
+  <h4><i class="bi bi-hdd-rack"></i>{% if object %}Editar servidor{% else %}Novo servidor{% endif %}</h4>
+</div>
 
 <div class="card" style="max-width: 560px;">
+  <div class="panel-header"><i class="bi bi-pencil-square"></i> Dados do servidor</div>
   <div class="card-body">
     <form method="post">
       {% csrf_token %}

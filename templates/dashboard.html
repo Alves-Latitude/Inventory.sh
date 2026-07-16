@@ -1,98 +1,90 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard — Latitude.sh Inventory{% endblock %}
 {% block content %}
-<h4 class="mb-4">Dashboard</h4>
+
+<div class="dash-header">
+  <div>
+    <h4>Dashboard</h4>
+    <div class="dash-subtitle">Visão geral do estoque — Latitude.sh Inventory</div>
+  </div>
+  <div class="live-badge"><span class="dot"></span> Tempo real</div>
+</div>
 
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-lg-3">
-    <div class="card text-bg-success">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fs-2 fw-bold">{{ totais.em_estoque }}</div>
-            <div>Em estoque</div>
-          </div>
-          <i class="bi bi-box-seam fs-1 opacity-50"></i>
-        </div>
+    <div class="stat-card stat-ok">
+      <div>
+        <div class="stat-value">{{ totais.em_estoque }}</div>
+        <div class="stat-label">Em estoque</div>
       </div>
+      <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
     </div>
   </div>
   <div class="col-sm-6 col-lg-3">
-    <div class="card text-bg-secondary">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fs-2 fw-bold">{{ totais.removido }}</div>
-            <div>Removidos</div>
-          </div>
-          <i class="bi bi-dash-circle fs-1 opacity-50"></i>
-        </div>
+    <div class="stat-card stat-accent">
+      <div>
+        <div class="stat-value">{{ totais.instalado }}</div>
+        <div class="stat-label">Instalados</div>
       </div>
+      <div class="stat-icon"><i class="bi bi-hdd-rack"></i></div>
     </div>
   </div>
   <div class="col-sm-6 col-lg-3">
-    <a href="{% url 'componente_adicionar' %}" class="card text-bg-primary text-decoration-none">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-bold">Adicionar</div>
-            <div style="font-size:.85rem;">Entrada no estoque</div>
-          </div>
-          <i class="bi bi-plus-circle fs-1 opacity-50"></i>
-        </div>
+    <div class="stat-card stat-danger">
+      <div>
+        <div class="stat-value">{{ totais.removido }}</div>
+        <div class="stat-label">Removidos</div>
       </div>
+      <div class="stat-icon"><i class="bi bi-dash-circle"></i></div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card stat-warn">
+      <div>
+        <div class="stat-value">{{ totais.em_estoque|add:totais.instalado|add:totais.removido }}</div>
+        <div class="stat-label">Total cadastrado</div>
+      </div>
+      <div class="stat-icon"><i class="bi bi-database"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6">
+    <a href="{% url 'componente_adicionar' %}" class="action-card action-primary">
+      <div>
+        <div class="action-title">Adicionar</div>
+        <div class="action-subtitle">Entrada no estoque</div>
+      </div>
+      <i class="bi bi-plus-circle fs-1"></i>
     </a>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <a href="{% url 'componente_remover' %}" class="card text-bg-danger text-decoration-none">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-bold">Remover</div>
-            <div style="font-size:.85rem;">Saída do estoque</div>
-          </div>
-          <i class="bi bi-dash-circle fs-1 opacity-50"></i>
-        </div>
+  <div class="col-sm-6">
+    <a href="{% url 'componente_remover' %}" class="action-card action-danger">
+      <div>
+        <div class="action-title">Remover</div>
+        <div class="action-subtitle">Saída do estoque</div>
       </div>
+      <i class="bi bi-dash-circle fs-1"></i>
     </a>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header">Últimas movimentações</div>
-  <div class="card-body p-0">
-    <table class="table table-hover mb-0">
-      <thead class="table-light">
-        <tr>
-          <th>Data</th>
-          <th>Tipo</th>
-          <th>Fabricante / Modelo</th>
-          <th>Data Center</th>
-          <th>Usuário</th>
-          <th>Obs.</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for m in ultimas_movimentacoes %}
-        <tr>
-          <td>{{ m.data|date:"d/m/Y H:i" }}</td>
-          <td>
-            {% if m.tipo == 'entrada' %}
-            <span class="badge text-bg-success">Entrada</span>
-            {% else %}
-            <span class="badge text-bg-danger">Saída</span>
-            {% endif %}
-          </td>
-          <td>{{ m.componente.fabricante }} {{ m.componente.modelo }}</td>
-          <td>{{ m.componente.data_center }}</td>
-          <td>{{ m.usuario }}</td>
-          <td>{{ m.observacoes|truncatechars:50|default:"—" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="text-center text-muted py-3">Nenhuma movimentação registrada.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<div class="panel-header" style="padding-left:0; border-bottom:none;"><i class="bi bi-building"></i> Estoque por Data Center</div>
+<div class="row g-3">
+  {% for dc in datacenters_estoque %}
+  <div class="col-sm-6 col-lg-4">
+    <a href="{% url 'componente_lista' %}?data_center={{ dc.pk }}&status=em_estoque" class="dc-stock-card">
+      <div class="dc-row">
+        <span class="dc-name">{{ dc.nome }}</span>
+        <span class="dc-code">{{ dc.codigo }}</span>
+      </div>
+      <div class="dc-count">{{ dc.total_estoque }}</div>
+      <div class="dc-label">itens em estoque</div>
+    </a>
   </div>
+  {% empty %}
+  <div class="col-12 text-muted py-2">Nenhum item em estoque no momento.</div>
+  {% endfor %}
 </div>
 {% endblock %}
