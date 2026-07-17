@@ -1,6 +1,6 @@
-{% comment %}Bloco de filtros reutilizável nos relatórios{% endcomment %}
+{% comment %}Reusable filters block for reports{% endcomment %}
 <div class="card mb-3">
-  <div class="panel-header"><i class="bi bi-funnel"></i> Filtros</div>
+  <div class="panel-header"><i class="bi bi-funnel"></i> Filters</div>
   <div class="card-body py-2">
     <form method="get" class="row g-2 align-items-end">
       {% for field in form %}
@@ -10,8 +10,8 @@
       </div>
       {% endfor %}
       <div class="col-auto">
-        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
-        <a href="{{ request.path }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <a href="{{ request.path }}" class="btn btn-outline-secondary btn-sm">Clear</a>
         <button type="submit" name="exportar" value="1" class="btn btn-outline-success btn-sm">
           <i class="bi bi-download me-1"></i>CSV
         </button>

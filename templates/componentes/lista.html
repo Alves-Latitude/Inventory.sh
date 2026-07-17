@@ -1,30 +1,30 @@
 {% extends 'base.html' %}
-{% block title %}Inventário — Latitude.sh Inventory{% endblock %}
+{% block title %}Inventory — Latitude.sh Inventory{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-list-ul"></i>Inventário <span class="count-pill">{{ componentes|length }}</span></h4>
+  <h4><i class="bi bi-list-ul"></i>Inventory <span class="count-pill">{{ componentes|length }}</span></h4>
   <div class="d-flex gap-2">
     <a href="{% url 'componente_adicionar' %}" class="btn btn-primary btn-sm">
-      <i class="bi bi-plus-circle me-1"></i>Adicionar
+      <i class="bi bi-plus-circle me-1"></i>Add
     </a>
     <a href="{% url 'componente_remover' %}" class="btn btn-outline-danger btn-sm">
-      <i class="bi bi-dash-circle me-1"></i>Remover
+      <i class="bi bi-dash-circle me-1"></i>Remove
     </a>
   </div>
 </div>
 
 <div class="card mb-3">
-  <div class="panel-header"><i class="bi bi-funnel"></i> Filtros</div>
+  <div class="panel-header"><i class="bi bi-funnel"></i> Filters</div>
   <div class="card-body">
     <form method="get" class="row g-2 align-items-end">
       <div class="col-auto">
         <input type="text" name="busca" class="form-control form-control-sm"
-               placeholder="Fabricante ou modelo" value="{{ filtros.busca|default:'' }}">
+               placeholder="Manufacturer or model" value="{{ filtros.busca|default:'' }}">
       </div>
       <div class="col-auto">
         <select name="tipo" class="form-select form-select-sm">
-          <option value="">Todos os tipos</option>
+          <option value="">All types</option>
           {% for t in tipos %}
           <option value="{{ t.pk }}" {% if filtros.tipo == t.pk|stringformat:'s' %}selected{% endif %}>{{ t }}</option>
           {% endfor %}
@@ -32,7 +32,7 @@
       </div>
       <div class="col-auto">
         <select name="data_center" class="form-select form-select-sm">
-          <option value="">Todos os DCs</option>
+          <option value="">All DCs</option>
           {% for dc in datacenters %}
           <option value="{{ dc.pk }}" {% if filtros.data_center == dc.pk|stringformat:'s' %}selected{% endif %}>{{ dc }}</option>
           {% endfor %}
@@ -40,34 +40,44 @@
       </div>
       <div class="col-auto">
         <select name="status" class="form-select form-select-sm">
-          <option value="">Todos os status</option>
+          <option value="">All statuses</option>
           {% for val, label in status_choices %}
           <option value="{{ val }}" {% if filtros.status == val %}selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-auto">
-        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
-        <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+        <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
       </div>
     </form>
   </div>
 </div>
 
+{% if modo_detalhe %}
+<div class="mb-2">
+  <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to grouped view
+  </a>
+</div>
+{% endif %}
+
 <div class="card">
-  <div class="panel-header"><i class="bi bi-hdd-stack"></i> Componentes</div>
+  <div class="panel-header"><i class="bi bi-hdd-stack"></i> {% if modo_detalhe %}Individual items{% else %}Components{% endif %}</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
+      {% if modo_detalhe %}
       <thead>
         <tr>
-          <th>Fabricante</th>
-          <th>Modelo</th>
-          <th>Tipo</th>
-          <th>Capacidade</th>
+          <th>Manufacturer</th>
+          <th>Model</th>
+          <th>Type</th>
+          <th>Capacity</th>
           <th>Interface</th>
+          <th>Form Factor</th>
           <th>Status</th>
           <th>Data Center</th>
-          <th>Entrada</th>
+          <th>Added</th>
         </tr>
       </thead>
       <tbody>
@@ -76,32 +86,70 @@
           <td>{{ c.fabricante }}</td>
           <td>{{ c.modelo }}</td>
           <td>{{ c.tipo }}</td>
-          <td class="font-mono">{{ c.disco_capacidade|default:"—" }}</td>
-          <td class="font-mono">{{ c.disco_interface|default:"—" }}</td>
+          <td class="font-mono">{{ c.disco_capacidade|default:c.ram_capacidade|default:"—" }}</td>
+          <td class="font-mono">{{ c.disco_interface|default:c.ram_interface|default:"—" }}</td>
+          <td class="font-mono">{{ c.ram_perfil|default:"—" }}</td>
           <td>
             {% if c.status == 'em_estoque' %}
-            <span class="badge-led led-ok">Em estoque</span>
+            <span class="badge-led led-ok">In stock</span>
             {% elif c.status == 'instalado' %}
-            <span class="badge-led led-info">Instalado</span>
+            <span class="badge-led led-info">Installed</span>
             {% else %}
-            <span class="badge-led led-danger">Removido</span>
+            <span class="badge-led led-danger">Removed</span>
             {% endif %}
           </td>
           <td>{{ c.data_center }}</td>
           <td class="font-mono text-muted">{{ c.data_entrada|date:"d/m/Y" }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="8" class="text-center text-muted py-4">Nenhum componente encontrado.</td></tr>
+        <tr><td colspan="9" class="text-center text-muted py-4">No items found.</td></tr>
         {% endfor %}
       </tbody>
+      {% else %}
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Data Center</th>
+          <th>Quantity</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for g in grupos %}
+        <tr>
+          <td>{{ g.tipo__nome }}</td>
+          <td>
+            {% if g.status == 'em_estoque' %}
+            <span class="badge-led led-ok">In stock</span>
+            {% elif g.status == 'instalado' %}
+            <span class="badge-led led-info">Installed</span>
+            {% else %}
+            <span class="badge-led led-danger">Removed</span>
+            {% endif %}
+          </td>
+          <td>{{ g.data_center__nome }} ({{ g.data_center__codigo }})</td>
+          <td class="font-mono">{{ g.total }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary"
+               href="{% url 'componente_lista' %}?modo=detalhe&tipo={{ g.tipo_id }}&status={{ g.status }}&data_center={{ g.data_center_id }}">
+              <i class="bi bi-list-ul me-1"></i>View items
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No components found.</td></tr>
+        {% endfor %}
+      </tbody>
+      {% endif %}
     </table>
   </div>
-  {% if is_paginated %}
+  {% if modo_detalhe and is_paginated %}
   <div class="card-footer" style="background:var(--bg-panel); border-top:1px solid var(--border-soft);">
     <nav><ul class="pagination pagination-sm mb-0">
-      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>{% endif %}
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>{% endif %}
       <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
-      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>{% endif %}
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
     </ul></nav>
   </div>
   {% endif %}

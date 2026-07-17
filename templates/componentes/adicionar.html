@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
-{% block title %}Adicionar Componentes — Latitude.sh Inventory{% endblock %}
+{% block title %}Add Components — Latitude.sh Inventory{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-plus-circle"></i>Adicionar componentes ao estoque</h4>
-  <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">Ver inventário</a>
+  <h4><i class="bi bi-plus-circle"></i>Add components to stock</h4>
+  <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">View inventory</a>
 </div>
 
 <div class="card" style="max-width: 680px;">
-  <div class="panel-header"><i class="bi bi-box-seam"></i> Dados do componente</div>
+  <div class="panel-header"><i class="bi bi-box-seam"></i> Component details</div>
   <div class="card-body">
     <form method="post">
       {% csrf_token %}
@@ -17,11 +17,11 @@
         <div class="col-12">
           <label class="form-label">{{ form.peca_padrao.label }}</label>
           {{ form.peca_padrao }}
-          <div class="form-text">Selecionar uma peça padrão preenche automaticamente tipo, fabricante, modelo e especificações abaixo.</div>
+          <div class="form-text">Selecting a standard part automatically fills the type, manufacturer, model, and specifications below.</div>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Tipo <span class="text-danger">*</span></label>
+          <label class="form-label">Type <span class="text-danger">*</span></label>
           {{ form.tipo }}
           {% for e in form.tipo.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
         </div>
@@ -32,21 +32,21 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Fabricante <span class="text-danger">*</span></label>
+          <label class="form-label">Manufacturer <span class="text-danger">*</span></label>
           {{ form.fabricante }}
           {% for e in form.fabricante.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
         </div>
         <div class="col-md-6">
-          <label class="form-label" for="id_modelo">Modelo <span class="text-danger">*</span></label>
+          <label class="form-label" for="id_modelo">Model <span class="text-danger">*</span></label>
           {{ form.modelo }}
           {% for e in form.modelo.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
         </div>
 
         <div id="disco-fields" style="display:none;" class="col-12">
-          <div class="form-section"><i class="bi bi-hdd"></i>Especificações do disco</div>
+          <div class="form-section"><i class="bi bi-hdd"></i>Disk specifications</div>
           <div class="row g-3">
             <div class="col-md-4">
-              <label class="form-label">Capacidade</label>
+              <label class="form-label">Capacity</label>
               {{ form.disco_capacidade }}
             </div>
             <div class="col-md-4">
@@ -59,43 +59,65 @@
             </div>
           </div>
         </div>
+
+        <div id="ram-fields" style="display:none;" class="col-12">
+          <div class="form-section"><i class="bi bi-memory"></i>RAM specifications</div>
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">{{ form.ram_capacidade.label }}</label>
+              {{ form.ram_capacidade }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">{{ form.ram_tipo.label }}</label>
+              {{ form.ram_tipo }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">{{ form.ram_interface.label }}</label>
+              {{ form.ram_interface }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">{{ form.ram_perfil.label }}</label>
+              {{ form.ram_perfil }}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="form-section"><i class="bi bi-123"></i>Quantidade e observações</div>
+      <div class="form-section"><i class="bi bi-123"></i>Quantity and notes</div>
       <div class="row g-3">
         <div class="col-md-3">
-          <label class="form-label">Quantidade <span class="text-danger">*</span></label>
+          <label class="form-label">Quantity <span class="text-danger">*</span></label>
           {{ form.quantidade }}
           <div class="form-text">{{ form.quantidade.help_text }}</div>
           {% for e in form.quantidade.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
         </div>
         <div class="col-md-9">
-          <label class="form-label">Observações</label>
+          <label class="form-label">Notes</label>
           {{ form.observacoes }}
         </div>
       </div>
 
-      <div class="form-section"><i class="bi bi-upc-scan"></i>Rastreabilidade (opcional)</div>
+      <div class="form-section"><i class="bi bi-upc-scan"></i>Traceability (optional)</div>
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label">{{ form.numeros_serie.label }}</label>
           {{ form.numeros_serie }}
-          <div class="form-text">Um por linha. Se a quantidade for maior que 1, informe um número de série por unidade, na mesma ordem.</div>
+          <div class="form-text">One per line. If quantity is greater than 1, provide one serial number per unit, in the same order.</div>
           {% for e in form.numeros_serie.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
         </div>
         <div class="col-md-6">
           <label class="form-label">{{ form.codigos_patrimonio.label }}</label>
           {{ form.codigos_patrimonio }}
-          <div class="form-text">Um por linha, na mesma ordem das unidades acima.</div>
+          <div class="form-text">One per line, in the same order as the units above.</div>
           {% for e in form.codigos_patrimonio.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
         </div>
       </div>
 
       <div class="d-flex gap-2 mt-4">
         <button type="submit" class="btn btn-primary px-4">
-          <i class="bi bi-plus-circle me-2"></i>Adicionar ao estoque
+          <i class="bi bi-plus-circle me-2"></i>Add to stock
         </button>
-        <a href="{% url 'componente_lista' %}" class="btn btn-secondary">Cancelar</a>
+        <a href="{% url 'componente_lista' %}" class="btn btn-secondary">Cancel</a>
       </div>
     </form>
   </div>
@@ -108,11 +130,11 @@ const categorias = {
 };
 
 const placeholders = {
-  disco: 'Ex: Exos X18 18TB',
-  ram:   'Ex: Kingston 16GB DDR4 3200MHz',
-  cpu:   'Ex: Intel Xeon E-2386G',
-  psu:   'Ex: Delta 750W 80 Plus Gold',
-  custom:'Ex: descreva o modelo',
+  disco: 'E.g.: Exos X18 18TB',
+  ram:   'E.g.: Kingston 16GB DDR4 3200MHz',
+  cpu:   'E.g.: Intel Xeon E-2386G',
+  psu:   'E.g.: Delta 750W 80 Plus Gold',
+  custom:'E.g.: describe the model',
 };
 
 const fabricantesPorTipo = {{ fabricantes_por_tipo_json|safe }};
@@ -123,7 +145,8 @@ function atualizarCamposPorTipo() {
   const cat = categorias[tipoId] || '';
 
   document.getElementById('disco-fields').style.display = cat === 'disco' ? '' : 'none';
-  document.getElementById('id_modelo').placeholder = placeholders[cat] || 'Modelo do componente';
+  document.getElementById('ram-fields').style.display = cat === 'ram' ? '' : 'none';
+  document.getElementById('id_modelo').placeholder = placeholders[cat] || 'Component model';
 
   const permitidos = fabricantesPorTipo[tipoId] || [];
   const selectFab = document.getElementById('id_fabricante');

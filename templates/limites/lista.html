@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Limites de Estoque — Inventário DC{% endblock %}
+{% block title %}Stock Limits — Inventory DC{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-sliders"></i>Limites de Estoque Mínimo <span class="count-pill">{{ limites|length }}</span></h4>
-  <a href="{% url 'limite_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Novo</a>
+  <h4><i class="bi bi-sliders"></i>Minimum Stock Limits <span class="count-pill">{{ limites|length }}</span></h4>
+  <a href="{% url 'limite_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New</a>
 </div>
 
 <div class="card">
-  <div class="panel-header"><i class="bi bi-exclamation-triangle"></i> Alertas configurados</div>
+  <div class="panel-header"><i class="bi bi-exclamation-triangle"></i> Configured alerts</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
       <thead>
-        <tr><th>Tipo</th><th>Data Center</th><th>Mínimo</th><th></th></tr>
+        <tr><th>Type</th><th>Data Center</th><th>Minimum</th><th></th></tr>
       </thead>
       <tbody>
         {% for l in limites %}
@@ -26,7 +26,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-center text-muted py-4">Nenhum limite configurado.</td></tr>
+        <tr><td colspan="4" class="text-center text-muted py-4">No limits configured.</td></tr>
         {% endfor %}
       </tbody>
     </table>

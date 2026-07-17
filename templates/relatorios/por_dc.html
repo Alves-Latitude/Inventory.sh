@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}Por Data Center — Latitude.sh Inventory{% endblock %}
+{% block title %}By Data Center — Latitude.sh Inventory{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-diagram-3"></i>Inventário por Data Center <span class="count-pill">{{ componentes|length }}</span></h4>
+  <h4><i class="bi bi-diagram-3"></i>Inventory by Data Center <span class="count-pill">{{ componentes|length }}</span></h4>
 </div>
 
 {% include 'relatorios/_filtros.html' %}
 
 <div class="card">
-  <div class="panel-header"><i class="bi bi-table"></i> Componentes</div>
+  <div class="panel-header"><i class="bi bi-table"></i> Components</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
       <thead>
-        <tr><th>Data Center</th><th>Fabricante</th><th>Modelo</th><th>Tipo</th><th>Capacidade</th><th>Status</th><th>Entrada</th></tr>
+        <tr><th>Data Center</th><th>Manufacturer</th><th>Model</th><th>Type</th><th>Capacity</th><th>Status</th><th>Added</th></tr>
       </thead>
       <tbody>
         {% for c in componentes %}
@@ -24,14 +24,14 @@
           <td>{{ c.tipo }}</td>
           <td class="font-mono">{{ c.disco_capacidade|default:"—" }}</td>
           <td>
-            {% if c.status == 'em_estoque' %}<span class="badge-led led-ok">Em estoque</span>
-            {% elif c.status == 'instalado' %}<span class="badge-led led-info">Instalado</span>
-            {% else %}<span class="badge-led led-danger">Removido</span>{% endif %}
+            {% if c.status == 'em_estoque' %}<span class="badge-led led-ok">In stock</span>
+            {% elif c.status == 'instalado' %}<span class="badge-led led-info">Installed</span>
+            {% else %}<span class="badge-led led-danger">Removed</span>{% endif %}
           </td>
           <td class="font-mono text-muted">{{ c.data_entrada|date:"d/m/Y" }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-center text-muted py-4">Nenhum componente encontrado.</td></tr>
+        <tr><td colspan="7" class="text-center text-muted py-4">No components found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
   <meta charset="UTF-8">
@@ -27,7 +27,7 @@
       {% if alertas_estoque %}
       <div class="alert alert-warning alert-sm py-2 mx-2 mt-2 mb-0" style="font-size:.8rem;" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-1"></i>
-        <strong>{{ alertas_estoque|length }} alerta(s)</strong>
+        <strong>{{ alertas_estoque|length }} alert(s)</strong>
         <ul class="mb-0 mt-1">
           {% for a in alertas_estoque %}
           <li>{{ a.tipo }} — {{ a.data_center }}: {{ a.quantidade }}/{{ a.minimo }}</li>
@@ -36,29 +36,30 @@
       </div>
       {% endif %}
 
-      <div class="nav-section">Estoque</div>
+<div class="nav-section">Inventory</div>
+<ul class="nav flex-column px-2 mb-1">
+  <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+  <li class="nav-item"><a class="nav-link" href="{% url 'componente_lista' %}"><i class="bi bi-list-ul me-2"></i>View inventory</a></li>
+  <li class="nav-item"><a class="nav-link" href="{% url 'componente_adicionar' %}"><i class="bi bi-plus-circle me-2"></i>Add components</a></li>
+  <li class="nav-item"><a class="nav-link" href="{% url 'componente_remover' %}"><i class="bi bi-dash-circle me-2"></i>Remove components</a></li>
+</ul>
+
+      <div class="nav-section">Reports</div>
       <ul class="nav flex-column px-2 mb-1">
-        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'componente_lista' %}"><i class="bi bi-list-ul me-2"></i>Ver inventário</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'componente_adicionar' %}"><i class="bi bi-plus-circle me-2"></i>Adicionar componentes</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'componente_remover' %}"><i class="bi bi-dash-circle me-2"></i>Remover componentes</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_estoque' %}"><i class="bi bi-box-seam me-2"></i>Current Stock</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_historico' %}"><i class="bi bi-clock-history me-2"></i>Recent Movements</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_removidos' %}"><i class="bi bi-x-circle me-2"></i>Removed</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_por_dc' %}"><i class="bi bi-diagram-3 me-2"></i>By Data Center</a></li>
       </ul>
 
-      <div class="nav-section">Relatórios</div>
-      <ul class="nav flex-column px-2 mb-1">
-        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_estoque' %}"><i class="bi bi-box-seam me-2"></i>Estoque atual</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_historico' %}"><i class="bi bi-clock-history me-2"></i>Últimas Movimentações</a></li>        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_removidos' %}"><i class="bi bi-x-circle me-2"></i>Removidos</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'relatorio_por_dc' %}"><i class="bi bi-diagram-3 me-2"></i>Por Data Center</a></li>
-      </ul>
-
-      <div class="nav-section">Configuração</div>
+      <div class="nav-section">Settings</div>
       <ul class="nav flex-column px-2 mb-1">
         <li class="nav-item"><a class="nav-link" href="{% url 'datacenter_lista' %}"><i class="bi bi-building me-2"></i>Data Centers</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'tipo_lista' %}"><i class="bi bi-tags me-2"></i>Tipos</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'tipo_lista' %}"><i class="bi bi-tags me-2"></i>Types</a></li>
         {% if user.is_admin_inventario %}
-        <li class="nav-item"><a class="nav-link" href="{% url 'fabricante_lista' %}"><i class="bi bi-building-gear me-2"></i>Fabricantes</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'usuario_lista' %}"><i class="bi bi-people me-2"></i>Usuários</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'limite_lista' %}"><i class="bi bi-sliders me-2"></i>Estoque mínimo</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'fabricante_lista' %}"><i class="bi bi-building-gear me-2"></i>Manufacturers</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'usuario_lista' %}"><i class="bi bi-people me-2"></i>Users</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'limite_lista' %}"><i class="bi bi-sliders me-2"></i>Minimum stock</a></li>
         {% endif %}
       </ul>
 
@@ -68,7 +69,7 @@
           {% csrf_token %}
           <div class="text-muted mb-1" style="font-size:.78rem;">{{ user.get_full_name|default:user.username }}</div>
           <button type="submit" class="nav-link text-danger py-0 border-0 bg-transparent text-start w-100" style="cursor:pointer;">
-            <i class="bi bi-box-arrow-left me-1"></i>Sair
+            <i class="bi bi-box-arrow-left me-1"></i>Log out
           </button>
         </form>
       </div>

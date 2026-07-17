@@ -32,7 +32,7 @@ class ServidorForm(forms.ModelForm):
         model = Servidor
         fields = ('hostname', 'data_center', 'observacoes', 'ativo')
         widgets = {
-            'hostname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: servidor-web-01'}),
+            'hostname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'E.g.: web-server-01'}),
             'data_center': forms.Select(attrs={'class': 'form-select'}),
             'observacoes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
@@ -87,73 +87,97 @@ class AdicionarComponentesForm(forms.Form):
     peca_padrao = forms.ModelChoiceField(
         queryset=PecaPadrao.objects.filter(ativo=True).select_related('tipo', 'fabricante'),
         required=False,
-        empty_label='— Selecionar peça padrão (preenche os campos abaixo automaticamente) —',
+        empty_label='— Select standard part (auto-fills the fields below) —',
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_peca_padrao'}),
-        label='Peça padrão de troca/compra',
+        label='Standard replacement/purchase part',
     )
     fabricante = forms.ModelChoiceField(
         queryset=Fabricante.objects.all(),
-        empty_label='Selecione o fabricante',
+        empty_label='Select the manufacturer',
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
     modelo = forms.CharField(
         max_length=200,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Ex: Exos X18 18TB',
+            'placeholder': 'E.g.: Exos X18 18TB',
             'id': 'id_modelo',
         }),
     )
     data_center = forms.ModelChoiceField(
         queryset=DataCenter.objects.all(),
-        empty_label='Selecione o Data Center',
+        empty_label='Select the Data Center',
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
     tipo = forms.ModelChoiceField(
         queryset=TipoComponente.objects.filter(ativo=True),
-        empty_label='Selecione o tipo',
+        empty_label='Select the type',
         widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_tipo'}),
     )
     disco_capacidade = forms.ChoiceField(
-        choices=[('', 'Selecione')] + Componente.CAPACIDADE_DISCO_CHOICES,
+        choices=[('', 'Select')] + Componente.CAPACIDADE_DISCO_CHOICES,
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'}),
-        label='Capacidade',
+        label='Capacity',
     )
     disco_tipo = forms.ChoiceField(
-        choices=[('', 'Selecione')] + Componente.DISCO_TIPO_CHOICES,
+        choices=[('', 'Select')] + Componente.DISCO_TIPO_CHOICES,
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'}),
-        label='Tipo (HDD / SSD / NVMe)',
+        label='Type (HDD / SSD / NVMe)',
     )
     disco_interface = forms.ChoiceField(
-        choices=[('', 'Selecione')] + Componente.INTERFACE_CHOICES,
+        choices=[('', 'Select')] + Componente.INTERFACE_CHOICES,
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'}),
         label='Interface (SATA / SAS / NVMe)',
+    )
+    ram_capacidade = forms.ChoiceField(
+        choices=[('', 'Select')] + Componente.RAM_CAPACIDADE_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Capacity',
+    )
+    ram_tipo = forms.ChoiceField(
+        choices=[('', 'Select')] + Componente.RAM_TIPO_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Type (UDIMM / RDIMM)',
+    )
+    ram_interface = forms.ChoiceField(
+        choices=[('', 'Select')] + Componente.RAM_INTERFACE_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Interface (DDR4 / DDR5)',
+    )
+    ram_perfil = forms.ChoiceField(
+        choices=[('', 'Select')] + Componente.RAM_PERFIL_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Form factor (VLP / LP)',
     )
     quantidade = forms.IntegerField(
         min_value=1,
         max_value=500,
         initial=1,
         widget=forms.NumberInput(attrs={'class': 'form-control'}),
-        help_text='Número de unidades idênticas a cadastrar.',
+        help_text='Number of identical units to register.',
     )
     numeros_serie = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'form-control', 'rows': 3,
-            'placeholder': 'Um número de série por linha (opcional — deixe em branco se ainda não for rastrear).',
+            'placeholder': 'One serial number per line (optional — leave blank if not tracking yet).',
         }),
-        label='Número(s) de série',
+        label='Serial number(s)',
     )
     codigos_patrimonio = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'form-control', 'rows': 3,
-            'placeholder': 'Um código patrimonial por linha (opcional).',
+            'placeholder': 'One asset tag per line (optional).',
         }),
-        label='Código(s) patrimonial(is)',
+        label='Asset tag(s)',
     )
     observacoes = forms.CharField(
         required=False,
@@ -165,18 +189,18 @@ class AdicionarComponentesForm(forms.Form):
         if not linhas:
             return []
         if len(linhas) != quantidade:
-            self.add_error(campo, f'Informe exatamente {quantidade} {label} (um por linha) ou deixe em branco.')
+            self.add_error(campo, f'Please provide exactly {quantidade} {label} (one per line) or leave it blank.')
         if len(linhas) != len(set(linhas)):
-            self.add_error(campo, 'Há valores duplicados nesta lista.')
+            self.add_error(campo, 'There are duplicate values in this list.')
         return linhas
 
     def clean(self):
         cleaned = super().clean()
         quantidade = cleaned.get('quantidade') or 0
 
-        series = self._parse_lista(cleaned.get('numeros_serie'), quantidade, 'numeros_serie', 'números de série')
+        series = self._parse_lista(cleaned.get('numeros_serie'), quantidade, 'numeros_serie', 'serial numbers')
         patrimonios = self._parse_lista(
-            cleaned.get('codigos_patrimonio'), quantidade, 'codigos_patrimonio', 'códigos patrimoniais'
+            cleaned.get('codigos_patrimonio'), quantidade, 'codigos_patrimonio', 'asset tags'
         )
 
         if series:
@@ -184,7 +208,7 @@ class AdicionarComponentesForm(forms.Form):
             if existentes.exists():
                 self.add_error(
                     'numeros_serie',
-                    f'Já existe(m) componente(s) cadastrado(s) com o(s) número(s) de série: '
+                    f'Component(s) already registered with the serial number(s): '
                     f'{", ".join(existentes.values_list("numero_serie", flat=True))}'
                 )
         if patrimonios:
@@ -192,7 +216,7 @@ class AdicionarComponentesForm(forms.Form):
             if existentes.exists():
                 self.add_error(
                     'codigos_patrimonio',
-                    f'Já existe(m) componente(s) cadastrado(s) com o(s) código(s) patrimonial(is): '
+                    f'Component(s) already registered with the asset tag(s): '
                     f'{", ".join(existentes.values_list("codigo_patrimonio", flat=True))}'
                 )
 
@@ -213,25 +237,25 @@ class AdicionarComponentesForm(forms.Form):
 
 class RemoverComponentesForm(forms.Form):
     observacoes = forms.CharField(
-        label='Motivo da saída',
+        label='Reason for removal',
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 3,
-            'placeholder': 'Ex: Disco com falha SMART, enviado para descarte.',
+            'placeholder': 'E.g.: Disk with SMART failure, sent for disposal.',
         }),
-        help_text='Descreva o motivo da saída. Será registrado no histórico de cada componente.',
+        help_text='Describe the reason for removal. It will be logged in each component\'s history.',
     )
 
 
 class InstalarComponentesForm(forms.Form):
     servidor = forms.ModelChoiceField(
         queryset=Servidor.objects.filter(ativo=True).select_related('data_center'),
-        empty_label='Selecione o servidor',
+        empty_label='Select the server',
         widget=forms.Select(attrs={'class': 'form-select'}),
     )
     observacoes = forms.CharField(
         required=False,
-        label='Observações',
+        label='Notes',
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
     )
 
@@ -240,26 +264,26 @@ class FiltroRelatorioForm(forms.Form):
     data_center = forms.ModelChoiceField(
         queryset=DataCenter.objects.all(),
         required=False,
-        empty_label='Todos os DCs',
+        empty_label='All DCs',
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
     )
     tipo = forms.ModelChoiceField(
         queryset=TipoComponente.objects.filter(ativo=True),
         required=False,
-        empty_label='Todos os tipos',
+        empty_label='All types',
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
     )
     status = forms.ChoiceField(
-        choices=[('', 'Todos os status')] + Componente.STATUS_CHOICES,
+        choices=[('', 'All statuses')] + Componente.STATUS_CHOICES,
         required=False,
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
     )
     periodo = forms.ChoiceField(
         choices=[
-            ('', 'Todo o período'),
-            ('mes', 'Último mês'),
-            ('trimestre', 'Último trimestre'),
-            ('ano', 'Último ano'),
+            ('', 'All time'),
+            ('mes', 'Last month'),
+            ('trimestre', 'Last quarter'),
+            ('ano', 'Last year'),
         ],
         required=False,
         widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),

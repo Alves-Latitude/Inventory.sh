@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -30,13 +31,13 @@ class AdminMixin(UserPassesTestMixin):
 
 
 class BloqueiaViewerMixin(UserPassesTestMixin):
-    """Bloqueia o perfil Viewer de acessar views de criação/edição/exclusão."""
+    """Blocks the Viewer role from accessing create/edit/delete views."""
     def test_func(self):
         return not self.request.user.is_somente_leitura()
 
 @login_required
 def dashboard(request):
-    from django.db.models import Count, Q
+    from django.db.models import Q
 
     totais = {
         'em_estoque': Componente.objects.filter(status=Componente.EM_ESTOQUE).count(),
@@ -47,6 +48,21 @@ def dashboard(request):
     datacenters_estoque = DataCenter.objects.annotate(
         total_estoque=Count('componente', filter=Q(componente__status=Componente.EM_ESTOQUE))
     ).filter(total_estoque__gt=0).order_by('-total_estoque')
+
+    breakdown_por_dc = {}
+    contagens = (
+        Componente.objects.filter(status=Componente.EM_ESTOQUE)
+        .values('data_center_id', 'tipo_id', 'tipo__nome')
+        .annotate(total=Count('id'))
+        .order_by('data_center_id', '-total')
+    )
+    for c in contagens:
+        breakdown_por_dc.setdefault(c['data_center_id'], []).append(
+            {'tipo_id': c['tipo_id'], 'tipo': c['tipo__nome'], 'total': c['total']}
+        )
+
+    for dc in datacenters_estoque:
+        dc.breakdown = breakdown_por_dc.get(dc.pk, [])
 
     return render(request, 'dashboard.html', {
         'totais': totais,
@@ -66,7 +82,7 @@ class UsuarioCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Cre
     success_url = reverse_lazy('usuario_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Usuário criado com sucesso.')
+        messages.success(self.request, 'User created successfully.')
         return super().form_valid(form)
 
 
@@ -77,7 +93,7 @@ class UsuarioUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Upd
     success_url = reverse_lazy('usuario_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Usuário atualizado com sucesso.')
+        messages.success(self.request, 'User updated successfully.')
         return super().form_valid(form)
 
 
@@ -87,7 +103,7 @@ class UsuarioDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Del
     success_url = reverse_lazy('usuario_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Usuário removido.')
+        messages.success(self.request, 'User removed.')
         return super().form_valid(form)
 
 
@@ -104,7 +120,7 @@ class DataCenterCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
     success_url = reverse_lazy('datacenter_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Data Center criado com sucesso.')
+        messages.success(self.request, 'Data Center created successfully.')
         return super().form_valid(form)
 
 
@@ -121,9 +137,9 @@ class DataCenterDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
 
     def form_valid(self, form):
         if self.object.componente_set.exists() or self.object.servidores.exists():
-            messages.error(self.request, 'Não é possível remover um Data Center com componentes ou servidores vinculados.')
+            messages.error(self.request, 'Cannot remove a Data Center with linked components or servers.')
             return redirect('datacenter_lista')
-        messages.success(self.request, 'Data Center removido.')
+        messages.success(self.request, 'Data Center removed.')
         return super().form_valid(form)
 
 
@@ -152,7 +168,7 @@ class ServidorCreateView(LoginRequiredMixin, BloqueiaViewerMixin, CreateView):
     success_url = reverse_lazy('servidor_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Servidor cadastrado com sucesso.')
+        messages.success(self.request, 'Server registered successfully.')
         return super().form_valid(form)
 
 
@@ -163,7 +179,7 @@ class ServidorUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Up
     success_url = reverse_lazy('servidor_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Servidor atualizado com sucesso.')
+        messages.success(self.request, 'Server updated successfully.')
         return super().form_valid(form)
 
 
@@ -181,7 +197,7 @@ class TipoCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Create
     success_url = reverse_lazy('tipo_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Tipo criado com sucesso.')
+        messages.success(self.request, 'Type created successfully.')
         return super().form_valid(form)
 
 
@@ -192,24 +208,24 @@ class TipoUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Update
     success_url = reverse_lazy('tipo_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Tipo atualizado com sucesso.')
+        messages.success(self.request, 'Type updated successfully.')
         return super().form_valid(form)
 
 
 @login_required
 def tipo_remover(request, pk):
     if not request.user.is_admin_inventario() or request.user.is_somente_leitura():
-        messages.error(request, 'Acesso negado.')
+        messages.error(request, 'Access denied.')
         return redirect('tipo_lista')
 
     tipo = get_object_or_404(TipoComponente, pk=pk)
     if not tipo.pode_remover():
-        messages.error(request, 'Não é possível remover um tipo com componentes cadastrados.')
+        messages.error(request, 'Cannot remove a type with registered components.')
         return redirect('tipo_lista')
 
     if request.method == 'POST':
         tipo.delete()
-        messages.success(request, 'Tipo removido.')
+        messages.success(request, 'Type removed.')
         return redirect('tipo_lista')
 
     return render(request, 'tipos/confirmar_exclusao.html', {'tipo': tipo})
@@ -228,7 +244,7 @@ class FabricanteCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
     success_url = reverse_lazy('fabricante_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Fabricante criado com sucesso.')
+        messages.success(self.request, 'Manufacturer created successfully.')
         return super().form_valid(form)
 
 
@@ -239,7 +255,7 @@ class FabricanteUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
     success_url = reverse_lazy('fabricante_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Fabricante atualizado.')
+        messages.success(self.request, 'Manufacturer updated.')
         return super().form_valid(form)
 
 
@@ -250,9 +266,9 @@ class FabricanteDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
 
     def form_valid(self, form):
         if self.object.componente_set.exists():
-            messages.error(self.request, 'Não é possível remover um fabricante com componentes cadastrados.')
+            messages.error(self.request, 'Cannot remove a manufacturer with registered components.')
             return redirect('fabricante_lista')
-        messages.success(self.request, 'Fabricante removido.')
+        messages.success(self.request, 'Manufacturer removed.')
         return super().form_valid(form)
 
 
@@ -270,7 +286,7 @@ class PecaPadraoCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
     success_url = reverse_lazy('peca_padrao_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Peça padrão cadastrada.')
+        messages.success(self.request, 'Standard part registered.')
         return super().form_valid(form)
 
 
@@ -281,7 +297,7 @@ class PecaPadraoUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
     success_url = reverse_lazy('peca_padrao_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Peça padrão atualizada.')
+        messages.success(self.request, 'Standard part updated.')
         return super().form_valid(form)
 
 
@@ -291,7 +307,7 @@ class PecaPadraoDeleteView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, 
     success_url = reverse_lazy('peca_padrao_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Peça padrão removida.')
+        messages.success(self.request, 'Standard part removed.')
         return super().form_valid(form)
 
 
@@ -309,7 +325,7 @@ class LimiteCreateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Crea
     success_url = reverse_lazy('limite_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Limite configurado com sucesso.')
+        messages.success(self.request, 'Limit configured successfully.')
         return super().form_valid(form)
 
 
@@ -320,7 +336,7 @@ class LimiteUpdateView(LoginRequiredMixin, AdminMixin, BloqueiaViewerMixin, Upda
     success_url = reverse_lazy('limite_lista')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Limite atualizado.')
+        messages.success(self.request, 'Limit updated.')
         return super().form_valid(form)
 
 
@@ -334,10 +350,10 @@ class ComponenteListView(LoginRequiredMixin, ListView):
     model = Componente
     template_name = 'componentes/lista.html'
     context_object_name = 'componentes'
-    paginate_by = 50
 
     def get_queryset(self):
-        qs = Componente.objects.select_related('tipo', 'data_center', 'servidor')
+        self.modo_detalhe = self.request.GET.get('modo') == 'detalhe'
+        qs = Componente.objects.select_related('tipo', 'fabricante', 'data_center', 'servidor')
         q = self.request.GET
         if q.get('tipo'):
             qs = qs.filter(tipo_id=q['tipo'])
@@ -349,12 +365,24 @@ class ComponenteListView(LoginRequiredMixin, ListView):
             qs = qs.filter(_busca_q(q['busca']))
         return qs
 
+    def get_paginate_by(self, queryset):
+        return 50 if getattr(self, 'modo_detalhe', False) else None
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['tipos'] = TipoComponente.objects.filter(ativo=True)
         ctx['datacenters'] = DataCenter.objects.all()
         ctx['status_choices'] = Componente.STATUS_CHOICES
         ctx['filtros'] = self.request.GET
+        ctx['modo_detalhe'] = self.modo_detalhe
+
+        if not self.modo_detalhe:
+            grupos = self.object_list.values(
+                'tipo_id', 'tipo__nome',
+                'status', 'data_center_id', 'data_center__nome', 'data_center__codigo',
+            ).annotate(total=Count('id')).order_by('tipo__nome')
+            ctx['grupos'] = grupos
+
         return ctx
 
 
@@ -383,7 +411,7 @@ class ComponenteDetailView(LoginRequiredMixin, DetailView):
 @login_required
 def adicionar_componentes(request):
     if request.user.is_somente_leitura():
-        messages.error(request, 'Seu perfil tem acesso somente leitura.')
+        messages.error(request, 'Your account has read-only access.')
         return redirect('componente_lista')
 
     if request.method == 'POST':
@@ -405,6 +433,10 @@ def adicionar_componentes(request):
                         disco_capacidade=d.get('disco_capacidade', ''),
                         disco_tipo=d.get('disco_tipo', ''),
                         disco_interface=d.get('disco_interface', ''),
+                        ram_capacidade=d.get('ram_capacidade', ''),
+                        ram_tipo=d.get('ram_tipo', ''),
+                        ram_interface=d.get('ram_interface', ''),
+                        ram_perfil=d.get('ram_perfil', ''),
                         numero_serie=series[i] if i < len(series) else None,
                         codigo_patrimonio=patrimonios[i] if i < len(patrimonios) else None,
                         observacoes=d.get('observacoes', ''),
@@ -418,7 +450,7 @@ def adicionar_componentes(request):
             verificar_e_enviar_alerta_email(d['tipo'], d['data_center'])
             messages.success(
                 request,
-                f'{quantidade} componente(s) adicionado(s) ao estoque com sucesso.'
+                f'{quantidade} component(s) successfully added to stock.'
             )
             return redirect('componente_lista')
     else:
@@ -451,7 +483,7 @@ def adicionar_componentes(request):
 @login_required
 def instalar_componentes(request):
     if request.user.is_somente_leitura():
-        messages.error(request, 'Seu perfil tem acesso somente leitura.')
+        messages.error(request, 'Your account has read-only access.')
         return redirect('componente_lista')
 
     qs = Componente.objects.filter(status=Componente.EM_ESTOQUE).select_related('tipo', 'data_center')
@@ -467,7 +499,7 @@ def instalar_componentes(request):
     if request.method == 'POST':
         ids_selecionados = request.POST.getlist('componentes')
         if not ids_selecionados:
-            messages.error(request, 'Selecione ao menos um componente para instalar.')
+            messages.error(request, 'Select at least one component to install.')
         elif form.is_valid():
             servidor = form.cleaned_data['servidor']
             observacoes = form.cleaned_data['observacoes']
@@ -486,7 +518,7 @@ def instalar_componentes(request):
                         servidor=servidor,
                         observacoes=observacoes,
                     )
-            messages.success(request, f'{componentes.count()} componente(s) instalado(s) em {servidor}.')
+            messages.success(request, f'{componentes.count()} component(s) installed on {servidor}.')
             return redirect('componente_lista')
 
     return render(request, 'componentes/instalar.html', {
@@ -502,7 +534,7 @@ def instalar_componentes(request):
 @login_required
 def remover_componentes(request):
     if request.user.is_somente_leitura():
-        messages.error(request, 'Seu perfil tem acesso somente leitura.')
+        messages.error(request, 'Your account has read-only access.')
         return redirect('componente_lista')
 
     qs = Componente.objects.exclude(status=Componente.REMOVIDO).select_related('tipo', 'data_center')
@@ -518,7 +550,7 @@ def remover_componentes(request):
     if request.method == 'POST':
         ids_selecionados = request.POST.getlist('componentes')
         if not ids_selecionados:
-            messages.error(request, 'Selecione ao menos um componente para remover.')
+            messages.error(request, 'Select at least one component to remove.')
         elif form.is_valid():
             observacoes = form.cleaned_data['observacoes']
             componentes = Componente.objects.filter(
@@ -534,7 +566,7 @@ def remover_componentes(request):
                         usuario=request.user,
                         observacoes=observacoes,
                     )
-            messages.success(request, f'{componentes.count()} componente(s) removido(s) do estoque.')
+            messages.success(request, f'{componentes.count()} component(s) removed from stock.')
             return redirect('componente_lista')
 
     return render(request, 'componentes/remover.html', {
@@ -636,9 +668,9 @@ def _exportar_csv_componentes(qs, nome_arquivo):
     response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}.csv"'
     writer = csv.writer(response)
     writer.writerow([
-        'Tipo', 'Fabricante', 'Modelo', 'Número de Série', 'Código Patrimonial',
-        'Capacidade', 'Tipo Disco', 'Interface',
-        'Status', 'Servidor', 'Data Center', 'Data Entrada', 'Observações',
+        'Type', 'Manufacturer', 'Model', 'Serial Number', 'Asset Tag',
+        'Capacity', 'Disk Type', 'Interface',
+        'Status', 'Server', 'Data Center', 'Date Added', 'Notes',
     ])
     for c in qs:
         writer.writerow([
@@ -653,7 +685,7 @@ def _exportar_csv_movimentacoes(qs, nome_arquivo):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}.csv"'
     writer = csv.writer(response)
-    writer.writerow(['Data', 'Tipo', 'Fabricante', 'Modelo', 'Número de Série', 'Servidor', 'Data Center', 'Usuário', 'Observações'])
+    writer.writerow(['Date', 'Type', 'Manufacturer', 'Model', 'Serial Number', 'Server', 'Data Center', 'User', 'Notes'])
     for m in qs:
         writer.writerow([
             m.data.strftime('%d/%m/%Y %H:%M'),

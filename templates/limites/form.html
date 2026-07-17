@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Limite — Inventário DC{% endblock %}
+{% block title %}{% if object %}Edit{% else %}New{% endif %} Limit — Inventory DC{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-sliders"></i>{% if object %}Editar limite{% else %}Novo limite de estoque{% endif %}</h4>
+  <h4><i class="bi bi-sliders"></i>{% if object %}Edit limit{% else %}New stock limit{% endif %}</h4>
 </div>
 
 <div class="card" style="max-width:420px;">
-  <div class="panel-header"><i class="bi bi-pencil-square"></i> Dados do limite</div>
+  <div class="panel-header"><i class="bi bi-pencil-square"></i> Limit details</div>
   <div class="card-body">
     <form method="post">
       {% csrf_token %}
@@ -19,8 +19,8 @@
       </div>
       {% endfor %}
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Salvar</button>
-        <a href="{% url 'limite_lista' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'limite_lista' %}" class="btn btn-secondary">Cancel</a>
       </div>
     </form>
   </div>

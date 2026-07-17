@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}Removidos — Latitude.sh Inventory{% endblock %}
+{% block title %}Removed — Latitude.sh Inventory{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-x-circle"></i>Componentes Removidos <span class="count-pill">{{ componentes|length }}</span></h4>
+  <h4><i class="bi bi-x-circle"></i>Removed Components <span class="count-pill">{{ componentes|length }}</span></h4>
 </div>
 
 {% include 'relatorios/_filtros.html' %}
 
 <div class="card">
-  <div class="panel-header"><i class="bi bi-table"></i> Itens removidos</div>
+  <div class="panel-header"><i class="bi bi-table"></i> Removed items</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
       <thead>
-        <tr><th>Fabricante</th><th>Modelo</th><th>Tipo</th><th>Data Center</th><th>Entrada</th></tr>
+        <tr><th>Manufacturer</th><th>Model</th><th>Type</th><th>Data Center</th><th>Added</th></tr>
       </thead>
       <tbody>
         {% for c in componentes %}
@@ -25,7 +25,7 @@
           <td class="font-mono text-muted">{{ c.data_entrada|date:"d/m/Y" }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-center text-muted py-4">Nenhum item encontrado.</td></tr>
+        <tr><td colspan="5" class="text-center text-muted py-4">No items found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}Remover Componentes — Latitude.sh Inventory{% endblock %}
+{% block title %}Remove Components — Latitude.sh Inventory{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-dash-circle"></i>Remover componentes do estoque</h4>
-  <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">Ver inventário</a>
+  <h4><i class="bi bi-dash-circle"></i>Remove components from stock</h4>
+  <a href="{% url 'componente_lista' %}" class="btn btn-outline-secondary btn-sm">View inventory</a>
 </div>
 
 <form method="post">
@@ -16,18 +16,18 @@
     <div class="col-md-8">
       <div class="card">
         <div class="panel-header d-flex justify-content-between align-items-center">
-          <span><i class="bi bi-check2-square"></i> Selecione os componentes</span>
+          <span><i class="bi bi-check2-square"></i> Select the components</span>
           <div class="d-flex gap-2">
             <select name="data_center" class="form-select form-select-sm" style="width:auto;"
                     onchange="this.form.method='get'; this.form.action=''; this.form.submit(); this.form.method='post';">
-              <option value="">Todos os DCs</option>
+              <option value="">All DCs</option>
               {% for dc in datacenters %}
               <option value="{{ dc.pk }}" {% if filtro_dc == dc.pk|stringformat:'s' %}selected{% endif %}>{{ dc }}</option>
               {% endfor %}
             </select>
             <select name="tipo" class="form-select form-select-sm" style="width:auto;"
                     onchange="this.form.method='get'; this.form.action=''; this.form.submit(); this.form.method='post';">
-              <option value="">Todos os tipos</option>
+              <option value="">All types</option>
               {% for t in tipos %}
               <option value="{{ t.pk }}" {% if filtro_tipo == t.pk|stringformat:'s' %}selected{% endif %}>{{ t }}</option>
               {% endfor %}
@@ -40,13 +40,13 @@
               <tr>
                 <th style="width:36px;">
                   <input type="checkbox" class="form-check-input" id="sel-todos"
-                         title="Selecionar todos">
+                         title="Select all">
                 </th>
-                <th>Fabricante / Modelo</th>
-                <th>Tipo</th>
-                <th>Capacidade</th>
+                <th>Manufacturer / Model</th>
+                <th>Type</th>
+                <th>Capacity</th>
                 <th>Data Center</th>
-                <th>Entrada</th>
+                <th>Added</th>
               </tr>
             </thead>
             <tbody>
@@ -65,7 +65,7 @@
               {% empty %}
               <tr>
                 <td colspan="6" class="text-center text-muted py-4">
-                  Nenhum componente em estoque com os filtros selecionados.
+                  No components in stock match the selected filters.
                 </td>
               </tr>
               {% endfor %}
@@ -73,14 +73,14 @@
           </table>
         </div>
         <div class="card-footer text-muted" style="font-size:.8rem;">
-          <span id="contagem-selecionados">0</span> de {{ componentes|length }} selecionado(s)
+          <span id="contagem-selecionados">0</span> of {{ componentes|length }} selected
         </div>
       </div>
     </div>
 
     <div class="col-md-4">
       <div class="card h-100">
-        <div class="panel-header"><i class="bi bi-chat-left-text"></i> Motivo da saída</div>
+        <div class="panel-header"><i class="bi bi-chat-left-text"></i> Reason for removal</div>
         <div class="card-body">
           <label class="form-label">{{ form.observacoes.label }} <span class="text-danger">*</span></label>
           {{ form.observacoes }}
@@ -91,9 +91,9 @@
         </div>
         <div class="card-footer">
           <button type="submit" class="btn btn-danger w-100" id="btn-remover" disabled>
-            <i class="bi bi-dash-circle me-2"></i>Confirmar remoção
+            <i class="bi bi-dash-circle me-2"></i>Confirm removal
           </button>
-          <a href="{% url 'componente_lista' %}" class="btn btn-secondary w-100 mt-2">Cancelar</a>
+          <a href="{% url 'componente_lista' %}" class="btn btn-secondary w-100 mt-2">Cancel</a>
         </div>
       </div>
     </div>

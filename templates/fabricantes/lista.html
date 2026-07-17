@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Fabricantes — Latitude.sh Inventory{% endblock %}
+{% block title %}Manufacturers — Latitude.sh Inventory{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-building-gear"></i>Fabricantes <span class="count-pill">{{ fabricantes|length }}</span></h4>
-  <a href="{% url 'fabricante_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Novo</a>
+  <h4><i class="bi bi-building-gear"></i>Manufacturers <span class="count-pill">{{ fabricantes|length }}</span></h4>
+  <a href="{% url 'fabricante_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New</a>
 </div>
 
 <div class="card" style="max-width:480px;">
-  <div class="panel-header"><i class="bi bi-list-ul"></i> Fabricantes cadastrados</div>
+  <div class="panel-header"><i class="bi bi-list-ul"></i> Registered manufacturers</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
       <thead>
-        <tr><th>Nome</th><th></th></tr>
+        <tr><th>Name</th><th></th></tr>
       </thead>
       <tbody>
         {% for f in fabricantes %}
@@ -24,7 +24,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="2" class="text-center text-muted py-4">Nenhum fabricante cadastrado.</td></tr>
+        <tr><td colspan="2" class="text-center text-muted py-4">No manufacturers registered.</td></tr>
         {% endfor %}
       </tbody>
     </table>

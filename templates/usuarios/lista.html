@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Usuários — Inventário DC{% endblock %}
+{% block title %}Users — Inventory DC{% endblock %}
 {% block content %}
 
 <div class="page-header">
-  <h4><i class="bi bi-people"></i>Usuários <span class="count-pill">{{ usuarios|length }}</span></h4>
-  <a href="{% url 'usuario_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Novo</a>
+  <h4><i class="bi bi-people"></i>Users <span class="count-pill">{{ usuarios|length }}</span></h4>
+  <a href="{% url 'usuario_novo' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New</a>
 </div>
 
 <div class="card">
-  <div class="panel-header"><i class="bi bi-person-lines-fill"></i> Contas cadastradas</div>
+  <div class="panel-header"><i class="bi bi-person-lines-fill"></i> Registered accounts</div>
   <div class="card-body p-0">
     <table class="table table-hover mb-0">
       <thead>
-        <tr><th>Usuário</th><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Ativo</th><th></th></tr>
+        <tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th></th></tr>
       </thead>
       <tbody>
         {% for u in usuarios %}
@@ -21,7 +21,7 @@
           <td>{{ u.get_full_name|default:"—" }}</td>
           <td>{{ u.email|default:"—" }}</td>
           <td>{{ u.get_perfil_display }}</td>
-          <td>{% if u.is_active %}<span class="badge-led led-ok">Sim</span>{% else %}<span class="badge-led led-danger">Não</span>{% endif %}</td>
+          <td>{% if u.is_active %}<span class="badge-led led-ok">Yes</span>{% else %}<span class="badge-led led-danger">No</span>{% endif %}</td>
           <td class="text-end">
             <a href="{% url 'usuario_editar' u.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
             {% if u.pk != user.pk %}
@@ -30,7 +30,7 @@
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6" class="text-center text-muted py-4">Nenhum usuário encontrado.</td></tr>
+        <tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
